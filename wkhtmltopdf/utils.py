@@ -23,7 +23,7 @@ from django.template import loader
 from django.template.context import Context, RequestContext
 import six
 
-from .subprocess import check_output
+from .subprocess import check_output, PIPE
 
 NO_ARGUMENT_OPTIONS = ['--collate', '--no-collate', '-H', '--extended-help', '-g',
                        '--grayscale', '-h', '--help', '--htmldoc', '--license', '-l',
@@ -142,6 +142,11 @@ def wkhtmltopdf(pages, output=None, **kwargs):
     except (AttributeError, IOError):
         # can't call fileno() on mod_wsgi stderr object
         pass
+
+    # Thanks https://stackoverflow.com/a/55260488/117092
+    use_pipe = getattr(settings, 'WKHTMLTOPDF_USE_PIPE', False)
+    if not ck_kwargs.get('stderr') and use_pipe:
+        ck_kwargs['stderr'] = PIPE
 
     return check_output(ck_args, **ck_kwargs)
 
